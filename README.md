@@ -4,4 +4,4 @@ This application has been devised keeping in mind the utility it will serve for 
 Also we can chat with the donee who is eagerly wants to donate blood.The only requirment for this is that donor or receiver should have this application .
 For a donee we have firstly mentioned wheather He/She is a donor or reciever(who wants blood).If person is a donor than he needs to fill a form so that receiver can get his details and can contact him either through the contact details provided or using the BLOODIE BOO CHAT BASED SYSTEM in which receiver has to manually add the ID of the donor so that he is able to send or receive messages.
 
-![Bloodie Boo](https://github.com/ankit6271/Bloodie-Boo-Blood-Application/blob/master/Project1.gif)
+![Bloodie Boo](https://github.com/ankit6271/Bloodie-Boo-Blood-Application/blob/master/Bloodie%20Boo%20GIF.gif)
