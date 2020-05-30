@@ -1,3 +1,4 @@
+
 package Project1;
 
 import java.awt.BorderLayout;
@@ -26,6 +27,10 @@ public class DonorChat extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	String get=null;
+	DataOutputStream dos;
+	DataInputStream dis;
+	JButton btnNewButton;
 	private JPanel contentPane;
 	public JTextField textField;
 	public JTextArea textArea ;
@@ -47,6 +52,8 @@ public class DonorChat extends JFrame {
 		textArea.setFont(new Font("Tahoma", Font.BOLD, 17));
 		textArea.setBounds(31, 222, 707, 522);
 		contentPane.add(textArea);
+		textArea.setEditable(true);
+		
 		
 		textField = new JTextField();
 		textField.setFont(new Font("Tahoma", Font.BOLD, 17));
@@ -54,12 +61,31 @@ public class DonorChat extends JFrame {
 		contentPane.add(textField);
 		textField.setColumns(10);
 		
-		JButton btnNewButton = new JButton("Send\r\n");
+		btnNewButton = new JButton("Send\r\n");
 		btnNewButton.setFont(new Font("Tahoma", Font.BOLD, 17));
 		btnNewButton.setForeground(Color.RED);
 		btnNewButton.setBackground(Color.LIGHT_GRAY);
 		btnNewButton.setBounds(602, 820, 125, 47);
 		contentPane.add(btnNewButton);
+		btnNewButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				String st="";
+				st=textField.getText();
+				try {
+					dos.writeUTF(st);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					System.out.print("excption in btnnewbutton");
+				}
+				textArea.setText("you"+st);
+			}
+			
+		});
+		
 		
 		JScrollBar scrollBar = new JScrollBar();
 		scrollBar.setBounds(717, 222, 21, 522);
@@ -77,8 +103,20 @@ public class DonorChat extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				// TODO Auto-generated method stub
 				try {
-					net();
-				} 
+					ServerSocket ss=new ServerSocket(9999);
+				    Socket snSocket=ss.accept();
+				    dos=new DataOutputStream(snSocket.getOutputStream());
+				    dis=new DataInputStream(snSocket.getInputStream());
+				    String s1="";
+					while(!s1.equals("stop")){
+				        s1=dis.readUTF();
+					    textArea.append(s1);
+					    System.out.println(s1);
+				        }
+//					textArea.setText("Client Want to Stop:"+s1);
+				
+				    ss.close();
+				}
 				catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -87,27 +125,6 @@ public class DonorChat extends JFrame {
 		});
 		
 		setVisible(true);
-	}
-	public void net() throws IOException{ 
-		ServerSocket ss=new ServerSocket(9999);
-	    Socket snSocket=ss.accept();
-	    DataOutputStream dos=new DataOutputStream(snSocket.getOutputStream());
-	    DataInputStream dis=new DataInputStream(snSocket.getInputStream());
-	    String si=textField.getText();
-	    String s1=null;
-	    while(true){
-	        s1=dis.readUTF();
-	        if (s1.equals("stop")){
-	        	textArea.setText("CLient Want to Stop:"+s1);
-	            break;
-	        }
-	        else{
-	        System.out.println("CLient Says:"+s1);
-	        textArea.setText("CLient Says:"+s1);
-	        }
-	        System.out.println("type something for Client");
-	        dos.writeUTF(si);      
-	    }
-	    ss.close();
-	}
-}
+	
+}}
+	
