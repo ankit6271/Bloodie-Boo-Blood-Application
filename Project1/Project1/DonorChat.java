@@ -1,4 +1,3 @@
-
 package Project1;
 
 import java.awt.BorderLayout;
@@ -7,8 +6,10 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingWorker;
 import javax.swing.JButton;
 import java.awt.Font;
 import javax.swing.JScrollBar;
@@ -21,13 +22,21 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutionException;
+//use of swing worker here is to apply threads in swing. as swing is not thread safe as a single thread is going
+//on for the entire doc program so we need to extends swing worker class which makes it suitable to use threads in this 
+//void in that is return type for swing worker overloaded method doinbackground and datainputstream is a parameter which is used in intermediate steps when execute is called to apply thread in that.
 
-public class DonorChat extends JFrame {
+public class DonorChat extends SwingWorker<Void,DataInputStream>{ 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	JFrame f=new JFrame();
 	String get=null;
+	ServerSocket ss;
+	String s1=null;
+	Socket snSocket;
 	DataOutputStream dos;
 	DataInputStream dis;
 	JButton btnNewButton;
@@ -36,28 +45,28 @@ public class DonorChat extends JFrame {
 	public JTextArea textArea ;
 	public JButton btnNewButton_1;
 	public DonorChat() {
-		setTitle("Donor Chat");
+		f.setTitle("Donor Chat");
 //		setIconImage(Toolkit.getDefaultToolkit().getImage("E:\\algorithm\\Project1\\Project1\\Blood.png"));
-		setIconImage(Toolkit.getDefaultToolkit().getImage("E:\\algorithm\\Project1\\Project1\\Blood.png"));
-		setForeground(Color.RED);
-		setFont(null);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(0, 0, 800, 1000);
+		f.setIconImage(Toolkit.getDefaultToolkit().getImage("E:\\algorithm\\Project1\\Project1\\Blood.png"));
+		f.setForeground(Color.RED);
+		f.setFont(null);
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		f.setBounds(0, 0, 800, 1000);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
+		f.setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
 		textArea= new JTextArea();
-		textArea.setFont(new Font("Tahoma", Font.BOLD, 17));
+		textArea.setFont(new Font("Tahoma", Font.BOLD, 20));
 		textArea.setBounds(31, 222, 707, 522);
+		textArea.setBorder(new LineBorder(Color.RED,2));
 		contentPane.add(textArea);
-		textArea.setEditable(true);
-		
 		
 		textField = new JTextField();
-		textField.setFont(new Font("Tahoma", Font.BOLD, 17));
+		textField.setFont(new Font("Tahoma", Font.BOLD, 22));
 		textField.setBounds(31, 793, 510, 105);
+		textField.setBorder(new LineBorder(Color.RED, 2));
 		contentPane.add(textField);
 		textField.setColumns(10);
 		
@@ -66,27 +75,9 @@ public class DonorChat extends JFrame {
 		btnNewButton.setForeground(Color.RED);
 		btnNewButton.setBackground(Color.LIGHT_GRAY);
 		btnNewButton.setBounds(602, 820, 125, 47);
+		textArea.setBorder(new LineBorder(Color.RED,2));
 		contentPane.add(btnNewButton);
-		btnNewButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
-				String st="";
-				st=textField.getText();
-				try {
-					dos.writeUTF(st);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					System.out.print("excption in btnnewbutton");
-				}
-				textArea.setText("you"+st);
-			}
 			
-		});
-		
-		
 		JScrollBar scrollBar = new JScrollBar();
 		scrollBar.setBounds(717, 222, 21, 522);
 		contentPane.add(scrollBar);
@@ -100,31 +91,62 @@ public class DonorChat extends JFrame {
 		btnNewButton_1.addActionListener(new ActionListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(ActionEvent arg0){
 				// TODO Auto-generated method stub
 				try {
-					ServerSocket ss=new ServerSocket(9999);
+					ss=new ServerSocket(9995);
 				    Socket snSocket=ss.accept();
 				    dos=new DataOutputStream(snSocket.getOutputStream());
-				    dis=new DataInputStream(snSocket.getInputStream());
-				    String s1="";
-					while(!s1.equals("stop")){
-				        s1=dis.readUTF();
-					    textArea.append(s1);
-					    System.out.println(s1);
-				        }
-//					textArea.setText("Client Want to Stop:"+s1);
-				
-				    ss.close();
-				}
+				    dis=new DataInputStream(snSocket.getInputStream());	
+				    execute();//this invokes overloaded method of SwingWorker class ie done and doinbackground
+				    System.out.println("close");//this will be printed before doinbackground as doinback is working in background with a separate thread.
+				} 
 				catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 		});
-		
-		setVisible(true);
-	
-}}
-	
+		f.setVisible(true);
+	}
+	protected Void doInBackground() throws Exception {
+		// TODO Auto-generated method stub
+		while(true){
+	        String s1=dis.readUTF();
+	        System.out.println(s1);
+	        if(s1.equals("stop")) {
+		    	textArea.append("BLOOD Receiver Says:  "+s1);
+		    	return null;
+		    } 
+		    else {
+		    	textArea.append("BLOOD Receiver Says:  "+s1+"\n");
+		    }
+	        btnNewButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					// TODO Auto-generated method stub
+					String f=textField.getText();
+					textArea.append("You:   "+f+"\n");
+					try {
+						dos.writeUTF(f);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			});
+		}
+	}
+	//this method is called after doinbackground() in background only
+	@Override
+	protected void done(){
+		try {
+			System.out.println("close socket");
+			ss.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+}
+
